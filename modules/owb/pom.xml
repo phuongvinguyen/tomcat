@@ -34,7 +34,7 @@
 
     <properties>
         <jakarta-inject.version>2.0.1</jakarta-inject.version>
-        <jakarta-interceptor.version>2.1.0</jakarta-interceptor.version>
+        <jakarta-interceptor.version>2.2.0</jakarta-interceptor.version>
         <jakarta-enterprise-cdi.version>4.0.1</jakarta-enterprise-cdi.version>
         <jakarta-annotation-api.version>2.1.1</jakarta-annotation-api.version>
         <tomcat.version>11.0.0-M22</tomcat.version>
@@ -116,7 +116,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.properties.OpenWebBeansPropertiesTransformer"/>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
                             </transformers>
                             <artifactSet>
                                 <excludes>
