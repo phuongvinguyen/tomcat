@@ -109,8 +109,11 @@
     <changelog>
       <scode>
         This release contains all of the changes up to and including those in
-        Apache Tomcat 11.0.0-M25 plus the additional changes listed below. (markt)
+        Apache Tomcat 11.0.1 plus the additional changes listed below. (markt)
       </scode>
+      <update>
+        The minimum Java version has been updated to Java 21. (markt)
+      </update>
     </changelog>
   </subsection>
   <subsection name="Catalina">
@@ -119,6 +122,24 @@
         Add support for the new Servlet API method
         <code>HttpServletResponse.sendEarlyHints()</code>. (markt)
       </add>
+      <!-- Entries for backport and removal before 12.0.0-M1 below this line -->
+      <fix>
+        Add special handling for the <code>protocols</code> attribute of
+        <code>SSLHostConfig</code> in storeconfig. (remm)
+      </fix>
+      <fix>
+        <bug>69442</bug>: Fix case sensitive check on <code>content-type</code>
+        when parsing request parameters. (remm)
+      </fix>
+      <fix>
+        Compatibility of generated embedded code with components where
+        constructors or property related methods throw a checked exception.
+        (remm)
+      </fix>
+      <fix>
+        The previous fix for incosistent resource metadata during concurrent
+        reads and writes was incomplete. (markt)
+      </fix>
     </changelog>
   </subsection>
   <subsection name="Coyote">
@@ -128,6 +149,12 @@
         attribute of the <code>Rfc6265CookieProcessor</code> from
         <code>name</code> to <code>ignore</code>. (markt)
       </update>
+      <update>
+        Remove default password value (was <code>changeit</code>) for the
+        <code>certificateKeystorePassword</code> attribute of a certificate.
+        (remm)
+      </update>
+      <!-- Entries for backport and removal before 12.0.0-M1 below this line -->
     </changelog>
   </subsection>
   <subsection name="Jasper">
@@ -141,6 +168,20 @@
         Language to support mergin <code>Map</code>Map and <code>Set</code>Set
         and concatenating <code>List</code>s. (markt)
       </add>
+      <update>
+        The defaults for <code>compilerSourceVM</code> and
+        <code>compilerTargetVM</code> have been updated to 21 to align with Java
+        21 being the minimum Java version required for Tomcat 12. (markt)
+      </update>
+      <!-- Entries for backport and removal before 12.0.0-M1 below this line -->
+    </changelog>
+  </subsection>
+  <subsection name="Other">
+    <changelog>
+      <update>
+        Update Derby to 10.17.1.0. (markt)
+      </update>
+      <!-- Entries for backport and removal before 12.0.0-M1 below this line -->
     </changelog>
   </subsection>
 </section>

@@ -73,6 +73,7 @@ import org.apache.catalina.util.ServerInfo;
 import org.apache.catalina.util.URLEncoder;
 import org.apache.catalina.webresources.CachedResource;
 import org.apache.tomcat.util.buf.B2CConverter;
+import org.apache.tomcat.util.http.FastHttpDateFormat;
 import org.apache.tomcat.util.http.ResponseUtil;
 import org.apache.tomcat.util.http.parser.ContentRange;
 import org.apache.tomcat.util.http.parser.EntityTag;
@@ -1657,22 +1658,23 @@ public class DefaultServlet extends HttpServlet {
         String rewrittenContextPath = rewriteUrl(contextPath);
 
         // Render the page header
-        sb.append("<!doctype html><html>\r\n");
+        sb.append("<!doctype html>\r\n");
+        sb.append("<html>\r\n");
         /*
          * TODO Activate this as soon as we use smClient with the request locales
          * sb.append("<!doctype html><html lang=\""); sb.append(smClient.getLocale().getLanguage()).append("\">\r\n");
          */
         sb.append("<head>\r\n");
         sb.append("<title>");
-        sb.append(sm.getString("directory.title", directoryWebappPath));
+        sb.append(sm.getString("defaultServlet.directory.title", directoryWebappPath));
         sb.append("</title>\r\n");
         sb.append("<style>");
         sb.append(org.apache.catalina.util.TomcatCSS.TOMCAT_CSS);
-        sb.append("</style> ");
+        sb.append("</style>\r\n");
         sb.append("</head>\r\n");
-        sb.append("<body>");
+        sb.append("<body>\r\n");
         sb.append("<h1>");
-        sb.append(sm.getString("directory.title", directoryWebappPath));
+        sb.append(sm.getString("defaultServlet.directory.title", directoryWebappPath));
 
         // Render the link to our parent (if required)
         String parentDirectory = directoryWebappPath;
@@ -1682,7 +1684,7 @@ public class DefaultServlet extends HttpServlet {
         int slash = parentDirectory.lastIndexOf('/');
         if (slash >= 0) {
             String parent = directoryWebappPath.substring(0, slash);
-            sb.append(" - <a href=\"");
+            sb.append(" \u2013 <a href=\"");
             sb.append(rewrittenContextPath);
             if (parent.equals("")) {
                 parent = "/";
@@ -1693,13 +1695,13 @@ public class DefaultServlet extends HttpServlet {
             }
             sb.append("\">");
             sb.append("<b>");
-            sb.append(sm.getString("directory.parent", parent));
+            sb.append(sm.getString("defaultServlet.directory.parent", parent));
             sb.append("</b>");
             sb.append("</a>");
         }
 
-        sb.append("</h1>");
-        sb.append("<hr class=\"line\">");
+        sb.append("</h1>\r\n");
+        sb.append("<hr class=\"line\">\r\n");
 
         sb.append("<table width=\"100%\" cellspacing=\"0\"" + " cellpadding=\"5\" align=\"center\">\r\n");
 
@@ -1710,47 +1712,50 @@ public class DefaultServlet extends HttpServlet {
             order = null;
         }
         // Render the column headings
+        sb.append("<thead>\r\n");
         sb.append("<tr>\r\n");
-        sb.append("<td align=\"left\"><font size=\"+1\"><strong>");
+        sb.append("<th align=\"left\"><font size=\"+1\"><strong>");
         if (sortListings && null != request) {
             sb.append("<a href=\"?C=N;O=");
             sb.append(getOrderChar(order, 'N'));
             sb.append("\">");
-            sb.append(sm.getString("directory.filename"));
+            sb.append(sm.getString("defaultServlet.resource.name"));
             sb.append("</a>");
         } else {
-            sb.append(sm.getString("directory.filename"));
+            sb.append(sm.getString("defaultServlet.resource.name"));
         }
-        sb.append("</strong></font></td>\r\n");
-        sb.append("<td align=\"center\"><font size=\"+1\"><strong>");
+        sb.append("</strong></font></th>\r\n");
+        sb.append("<th align=\"center\"><font size=\"+1\"><strong>");
         if (sortListings && null != request) {
             sb.append("<a href=\"?C=S;O=");
             sb.append(getOrderChar(order, 'S'));
             sb.append("\">");
-            sb.append(sm.getString("directory.size"));
+            sb.append(sm.getString("defaultServlet.resource.size"));
             sb.append("</a>");
         } else {
-            sb.append(sm.getString("directory.size"));
+            sb.append(sm.getString("defaultServlet.resource.size"));
         }
-        sb.append("</strong></font></td>\r\n");
-        sb.append("<td align=\"right\"><font size=\"+1\"><strong>");
+        sb.append("</strong></font></th>\r\n");
+        sb.append("<th align=\"right\"><font size=\"+1\"><strong>");
         if (sortListings && null != request) {
             sb.append("<a href=\"?C=M;O=");
             sb.append(getOrderChar(order, 'M'));
             sb.append("\">");
-            sb.append(sm.getString("directory.lastModified"));
+            sb.append(sm.getString("defaultServlet.resource.lastModified"));
             sb.append("</a>");
         } else {
-            sb.append(sm.getString("directory.lastModified"));
+            sb.append(sm.getString("defaultServlet.resource.lastModified"));
         }
-        sb.append("</strong></font></td>\r\n");
-        sb.append("</tr>");
+        sb.append("</strong></font></th>\r\n");
+        sb.append("</tr>\r\n");
+        sb.append("</thead>\r\n");
 
         if (null != sortManager && null != request) {
             sortManager.sort(entries, request.getQueryString());
         }
 
         boolean shade = false;
+        sb.append("<tbody>\r\n");
         for (WebResource childResource : entries) {
             String filename = childResource.getName();
             if (filename.equalsIgnoreCase("WEB-INF") || filename.equalsIgnoreCase("META-INF")) {
@@ -1791,25 +1796,26 @@ public class DefaultServlet extends HttpServlet {
             sb.append("</tt></td>\r\n");
 
             sb.append("<td align=\"right\"><tt>");
-            sb.append(childResource.getLastModifiedHttp());
+            sb.append(renderTimestamp(childResource.getLastModified()));
             sb.append("</tt></td>\r\n");
 
             sb.append("</tr>\r\n");
         }
+        sb.append("</tbody>\r\n");
 
         // Render the page footer
         sb.append("</table>\r\n");
 
-        sb.append("<hr class=\"line\">");
+        sb.append("<hr class=\"line\">\r\n");
 
         String readme = getReadme(resource, encoding);
         if (readme != null) {
             sb.append(readme);
-            sb.append("<hr class=\"line\">");
+            sb.append("<hr class=\"line\">\r\n");
         }
 
         if (showServerInfo) {
-            sb.append("<h3>").append(ServerInfo.getServerInfo()).append("</h3>");
+            sb.append("<h3>").append(ServerInfo.getServerInfo()).append("</h3>\r\n");
         }
         sb.append("</body>\r\n");
         sb.append("</html>\r\n");
@@ -1838,6 +1844,20 @@ public class DefaultServlet extends HttpServlet {
         }
 
         return ("" + leftSide + "." + rightSide + " KiB");
+
+    }
+
+
+    /**
+     * Render the specified file timestamp.
+     *
+     * @param timestamp File timestamp
+     *
+     * @return the formatted timestamp
+     */
+    protected String renderTimestamp(long timestamp) {
+
+        return FastHttpDateFormat.formatDate(timestamp);
 
     }
 
@@ -2435,7 +2455,7 @@ public class DefaultServlet extends HttpServlet {
     protected IOException copyRange(InputStream istream, ServletOutputStream ostream, long start, long end) {
 
         if (debug > 10) {
-            log("Serving bytes:" + start + "-" + end);
+            log("Serving bytes: " + start + "-" + end);
         }
 
         long skipped = 0;

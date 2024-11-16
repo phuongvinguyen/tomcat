@@ -66,6 +66,7 @@ import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.apache.tomcat.util.net.SSLHostConfigCertificate.Type;
 import org.apache.tomcat.util.net.jsse.JSSEImplementation;
 import org.apache.tomcat.util.net.openssl.OpenSSLImplementation;
+import org.apache.tomcat.util.net.openssl.OpenSSLStatus;
 
 public final class TesterSupport {
 
@@ -109,6 +110,7 @@ public final class TesterSupport {
     }
 
     public static void initSsl(Tomcat tomcat) {
+        // TLS material for tests uses default password
         initSsl(tomcat, LOCALHOST_RSA_JKS, null, null, null, null);
     }
 
@@ -140,6 +142,8 @@ public final class TesterSupport {
         }
         if (keystorePass != null) {
             certificate.setCertificateKeystorePassword(keystorePass);
+        } else {
+            certificate.setCertificateKeystorePassword(JKS_PASS);
         }
         if (keyPassFile != null) {
             certificate.setCertificateKeyPasswordFile(new File(keyPassFile).getAbsolutePath());
@@ -225,6 +229,11 @@ public final class TesterSupport {
             server.addLifecycleListener(listener);
         }
         Assert.assertTrue(tomcat.getConnector().setProperty("sslImplementationName", sslImplementationName));
+    }
+
+    public static boolean isOpenSSLVariant(String sslImplementationName, OpenSSLStatus.Name name) {
+        return "org.apache.tomcat.util.net.openssl.panama.OpenSSLImplementation".equals(sslImplementationName)
+                && name.equals(OpenSSLStatus.getName());
     }
 
     public static void configureClientCertContext(Tomcat tomcat) {

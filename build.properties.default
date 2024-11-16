@@ -95,11 +95,13 @@ gpg.exec=/path/to/gpg
 # Code signing of Windows installer
 # See https://infra.apache.org/digicert-use.html for setup instructions
 do.codesigning=false
-codesigning.alias=Tomcat-PMC-cert-2023-11
-codesigning.digest=SHA-512
-codesigning.storetype=DIGICERTONE
+codesigning.alias=d97c5110-c66a-4c0c-ac0c-1cd6af812ee6
+codesigning.digest=SHA256
+codesigning.storetype=ESIGNER
 # Set codesigning.storepass in build.properties with the following syntax
-#codesigning.storepass=<api-key>|/path/to/Certificate_pkcs12.p12|<password>
+#codesigning.storepass=<ssl.com user name>|<ssl.com password>
+# Set codesigning.keypass in build.properties with the following syntax
+#codesigning.keypass=<ssl.com TOTP secret>
 
 # ----- Settings to control downloading of files -----
 execute.download=true
@@ -130,20 +132,20 @@ base-maven.loc=https://repo.maven.apache.org/maven2
 # ----- Eclipse JDT, version 4.7 or later -----#
 # See https://cwiki.apache.org/confluence/display/TOMCAT/Managing+Tomcat%27s+Dependency+on+the+Eclipse+JDT+Core+Batch+Compiler
 #
-# Checksum is from "SHA512 Checksums for 4.31" link at
-# https://download.eclipse.org/eclipse/downloads/drops4/R-4.32-202406010610/
-# https://download.eclipse.org/eclipse/downloads/drops4/R-4.32-202406010610/checksum/eclipse-4.32-SUMSSHA512
+# Checksum is from "SHA512 Checksums for 4.33" link at
+# https://download.eclipse.org/eclipse/downloads/drops4/R-4.33-202409030240/
+# https://download.eclipse.org/eclipse/downloads/drops4/R-4.33-202409030240/checksum/eclipse-4.33-SUMSSHA512
 #
-jdt.version=4.32
-jdt.release=R-4.32-202406010610
+jdt.version=4.33
+jdt.release=R-4.33-202409030240
 jdt.checksum.enabled=true
 jdt.checksum.algorithm=SHA-512
-jdt.checksum.value=8937dede817b8c37f23e0b42162bdd0f722e34e40f75a35b9ca45a17bc78c1a0d65ddaa81b5e6916c7cd8895023a04dd6112031c952ab4584e72e6a1f35f1608
+jdt.checksum.value=8b99bf69dc13a8b58a5507818be9222887f33b7120f4e92bcae89af108d38b9412715f6fe749eec0c07fc9bde9d84e5f8deacd74030559fab22f14697c12a1a9
 jdt.home=${base.path}/ecj-${jdt.version}
 jdt.jar=${jdt.home}/ecj-${jdt.version}.jar
 # The download will be moved to the archive area eventually. We are taking care of that in advance.
-jdt.loc.1=http://archive.eclipse.org/eclipse/downloads/drops4/${jdt.release}/ecj-${jdt.version}.jar
-jdt.loc.2=http://download.eclipse.org/eclipse/downloads/drops4/${jdt.release}/ecj-${jdt.version}.jar
+jdt.loc.1=https://archive.eclipse.org/eclipse/downloads/drops4/${jdt.release}/ecj-${jdt.version}.jar
+jdt.loc.2=https://download.eclipse.org/eclipse/downloads/drops4/${jdt.release}/ecj-${jdt.version}.jar
 
 # ----- Tomcat native library -----
 tomcat-native.version=2.0.8
@@ -242,10 +244,10 @@ objenesis.jar=${objenesis.home}/objenesis-${objenesis.version}.jar
 objenesis.loc=${base-maven.loc}/org/objenesis/objenesis/${objenesis.version}/objenesis-${objenesis.version}.jar
 
 # ----- byte-buddy, used by EasyMock, version 1.12.18 or later -----
-bytebuddy.version=1.15.0
+bytebuddy.version=1.15.10
 bytebuddy.checksum.enabled=true
 bytebuddy.checksum.algorithm=MD5|SHA-1
-bytebuddy.checksum.value=e830b0eae8ae0e4b7df4f4ddba23fbe1|a5b1159b91c5334015de0f22ab4b1188cd42bbff
+bytebuddy.checksum.value=0b029979f5bf509510f91c1a49fd4adb|635c873fadd853c084f84fdc3cbd58c5dd8537f9
 bytebuddy.home=${base.path}/byte-buddy-${bytebuddy.version}
 bytebuddy.jar=${bytebuddy.home}/byte-buddy-${bytebuddy.version}.jar
 bytebuddy.loc=${base-maven.loc}/net/bytebuddy/byte-buddy/${bytebuddy.version}/byte-buddy-${bytebuddy.version}.jar
@@ -260,10 +262,10 @@ unboundid.jar=${unboundid.home}/unboundid-ldapsdk-${unboundid.version}.jar
 unboundid.loc=${base-maven.loc}/com/unboundid/unboundid-ldapsdk/${unboundid.version}/unboundid-ldapsdk-${unboundid.version}.jar
 
 # ----- Checkstyle, version 6.16 or later -----
-checkstyle.version=10.18.0
+checkstyle.version=10.20.0
 checkstyle.checksum.enabled=true
 checkstyle.checksum.algorithm=SHA-512
-checkstyle.checksum.value=4942c46443773ec31b2816249820e6825991f3ef0f7339e3f432692338cea4634811dc631c0d4b4c8d44205c7344603dab43e1196b50e9ab25206cda1921e1b4
+checkstyle.checksum.value=4c2d4ca9ae531e01c56bb570cfc4b080c577bc7d87c8004f253ba68dbc4c5dd825a43b77cdc3331b8d6fb328a09147e0bbef705657d11c21a6e09b69e299c84e
 checkstyle.home=${base.path}/checkstyle-${checkstyle.version}
 checkstyle.jar=${checkstyle.home}/checkstyle-${checkstyle.version}-all.jar
 checkstyle.loc=${base-gh.loc}/checkstyle/checkstyle/releases/download/checkstyle-${checkstyle.version}/checkstyle-${checkstyle.version}-all.jar
@@ -318,17 +320,16 @@ jsign.jar=${jsign.home}/jsign-${jsign.version}.jar
 jsign.loc=${base-maven.loc}/net/jsign/jsign/${jsign.version}/jsign-${jsign.version}.jar
 
 # ----- Derby, used by unit tests -----
-# 10.16.1.1 is the latest version that runs on Java 17
-derby.version=10.16.1.1
+derby.version=10.17.1.0
 derby.checksum.enabled=true
 derby.checksum.algorithm=MD5|SHA-1
-derby.checksum.value=d9c38ece80f4ec0756f54b06716a3dd6|f9ca2054b3e33ec3f3f19df4a7490352d82de54a
+derby.checksum.value=0665c8f3365fca01eb639e41f7685991|e90e61e8ee731614a9bafd3d81155e09fff5e80c
 derby-shared.checksum.enabled=true
 derby-shared.checksum.algorithm=MD5|SHA-1
-derby-shared.checksum.value=e423cba3150f195debaf7ff0d307ecf6|77a3ec6b9791c7c29c76148c5d56fc1f3f12d638
+derby-shared.checksum.value=ce2d7164d5cda8ac3a1ede81023814d4|e6eac60d1b80b3781dff97ccef88fa131043f2a5
 derby-tools.checksum.enabled=true
 derby-tools.checksum.algorithm=MD5|SHA-1
-derby-tools.checksum.value=25b138905deb681ff167a5a04d29c3c6|32a5335f9087022cd8ca5c85f35f8c844b1360a9
+derby-tools.checksum.value=ea7b7cba09a4056219e888bcdc1a3bb7|6d1a4e5e0f5c26516abbba85ece081506b9ad2e1
 
 derby.home=${base.path}/derby-${derby.version}
 derby.jar=${derby.home}/derby-${derby.version}.jar

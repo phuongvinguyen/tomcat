@@ -182,6 +182,15 @@ public class OpenSSLLibrary {
                 initLibrary();
 
                 OpenSSLStatus.setVersion(OpenSSL_version_num());
+                if (openssl_h_Compatibility.OPENSSL3) {
+                    OpenSSLStatus.setName(OpenSSLStatus.Name.OPENSSL3);
+                } else if (openssl_h_Compatibility.OPENSSL) {
+                    OpenSSLStatus.setName(OpenSSLStatus.Name.OPENSSL);
+                } else if (openssl_h_Compatibility.LIBRESSL) {
+                    OpenSSLStatus.setName(OpenSSLStatus.Name.LIBRESSL);
+                } else if (openssl_h_Compatibility.BORINGSSL) {
+                    OpenSSLStatus.setName(OpenSSLStatus.Name.BORINGSSL);
+                }
 
                 // OpenSSL 3 onwards uses providers
 
@@ -350,6 +359,8 @@ public class OpenSSLLibrary {
 
             try {
                 if (OpenSSL_version_num() < 0x3000000fL) {
+                    // There could be unreferenced SSL_CTX still waiting for GC
+                    System.gc();
                     freeDHParameters();
                     if (!MemorySegment.NULL.equals(enginePointer)) {
                         ENGINE_free(enginePointer);

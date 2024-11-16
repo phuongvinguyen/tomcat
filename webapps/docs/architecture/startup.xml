@@ -42,23 +42,6 @@ different ways to start tomcat, including:
   <li>Automatically as a Windows service.</li>
 </ul>
 
-<subsection name="description">
-<p>
-A <a href="startup/serverStartup.txt">text description</a> of the startup
-procedure created for Tomcat 5. The updated version of this description for
-Tomcat 12 will be included in the updated diagrams and diagram descriptions in
-the following section. This text file will be removed when that update is
-complete.
-</p>
-</subsection>
-
-<subsection name="diagram">
-<p>
-The <a href="startup/serverStartup.pdf">UML sequence diagram</a> of the startup
-procedure created for Tomcat 5 is gradually being replaced with updated diagrams
-based on Tomcat 12. The scope of these diagrams may be adjusted as they are
-produced.
-</p>
 <p>
 A series of UML diagrams have been created to document the start-up process for
 Tomcat.
@@ -80,29 +63,40 @@ only has one. Each Service may have multiple Connectors. A Connector instance is
 associated with a single Protocol instance and a single CoyoteAdapter instance.
 </p>
 <p>
-Diagram 3 will show how the Server initialises the Service(s), Engine(s) and
-Host(s).
+<a href="startup/3_catalina_start_1.png">Diagram 3</a> shows how Tomcat starts
+the objects created by the Digester that were initialized in the previous step.
+This diagram also shows when lifecycle events are fired. There is more detail to
+the starting of the Engine (and other Containers) which is shown in the
+following diagram.
 </p>
 <p>
-Diagram 4 will show how the Host initialises the Context(s).
+<a href="startup/4_catalina_start_2.png">Diagram 4</a> shows how Containers
+(Engines, Hosts, Contexts and Wrappers) start along with any supporting
+Clusters, Realms and Valves.
 </p>
 <p>
-Diagram 5 will show how the Context initialises the Filters, Servlets etc.
+<a href="startup/5_catalina_start_3.png">Diagram 5</a> shows the start process
+for Context elements as it is rather more involved that the other Containers.
 </p>
-</subsection>
+<p>
+<a href="startup/6_catalina_host_config.png">Diagram 6</a> shows how the
+HostConfig component responds to lifecycle events triggered by the Host to
+deploy web applications to the Host.</p>
+<p>
+<a href="startup/7_catalina_context_config.png">Diagram 7</a> shows how the
+ContextConfig component responds to lifecycle events triggered by the Context to
+parse the global and application provided configuration files to create a merged
+web.xml file that is then used, along with other settings, to configure the web
+application.
+</p>
 
-<subsection name="comments">
 <p>
-The startup process can be customized in many ways, both
-by modifying Tomcat code and by implementing your own
-LifecycleListeners which are then registered in the server.xml
-configuration file.
+The startup process can be customized in many ways by implementing your own
+LifecycleListeners which are then registered in the server.xml configuration
+file.
 </p>
-
-</subsection>
 
 </section>
-
 
 </body>
 </document>

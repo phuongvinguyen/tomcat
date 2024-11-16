@@ -32,6 +32,7 @@ import org.apache.catalina.filters.TestRemoteIpFilter.MockFilterChain;
 import org.apache.catalina.filters.TestRemoteIpFilter.MockHttpServletRequest;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.TomcatBaseTest;
+import org.apache.catalina.util.FastRateLimiter;
 import org.apache.tomcat.unittest.TesterResponse;
 import org.apache.tomcat.util.descriptor.web.FilterDef;
 import org.apache.tomcat.util.descriptor.web.FilterMap;
@@ -45,8 +46,8 @@ public class TestRateLimitFilter extends TomcatBaseTest {
         int bucketDuration = 4;
 
         FilterDef filterDef = new FilterDef();
-        filterDef.addInitParameter(RateLimitFilter.PARAM_BUCKET_REQUESTS, String.valueOf(bucketRequests));
-        filterDef.addInitParameter(RateLimitFilter.PARAM_BUCKET_DURATION, String.valueOf(bucketDuration));
+        filterDef.addInitParameter("bucketRequests", String.valueOf(bucketRequests));
+        filterDef.addInitParameter("bucketDuration", String.valueOf(bucketDuration));
 
         Tomcat tomcat = getTomcatInstance();
         Context root = tomcat.addContext("", TEMP_DIR);
@@ -55,9 +56,10 @@ public class TestRateLimitFilter extends TomcatBaseTest {
         MockFilterChain filterChain = new MockFilterChain();
         RateLimitFilter rateLimitFilter = testRateLimitFilter(filterDef, root);
 
-        int allowedRequests = (int) Math.round(rateLimitFilter.bucketCounter.getRatio() * bucketRequests);
+        FastRateLimiter fastRateLimiter = (FastRateLimiter) rateLimitFilter.rateLimiter;
 
-        long sleepTime = rateLimitFilter.bucketCounter.getMillisUntilNextBucket();
+        int allowedRequests = fastRateLimiter.getRequests();
+        long sleepTime = fastRateLimiter.getBucketCounter().getMillisUntilNextBucket();
         System.out.printf("Sleeping %d millis for the next time bucket to start\n", Long.valueOf(sleepTime));
         Thread.sleep(sleepTime);
 

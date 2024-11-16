@@ -26,6 +26,7 @@ import java.lang.foreign.ValueLayout;
 import java.lang.ref.Cleaner;
 import java.lang.ref.Cleaner.Cleanable;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -174,14 +175,18 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
                 if (log.isTraceEnabled()) {
                     log.trace(sm.getString("openssl.makeConf"));
                 }
-                confCtx = SSL_CONF_CTX_new();
-                if (MemorySegment.NULL.equals(confCtx)) {
-                    throw new SSLException(sm.getString("openssl.errMakeConf", OpenSSLLibrary.getLastError()));
+                if (!openssl_h_Compatibility.BORINGSSL) {
+                    confCtx = SSL_CONF_CTX_new();
+                    if (MemorySegment.NULL.equals(confCtx)) {
+                        throw new SSLException(sm.getString("openssl.errMakeConf", OpenSSLLibrary.getLastError()));
+                    }
+                    SSL_CONF_CTX_set_flags(confCtx, SSL_CONF_FLAG_FILE() |
+                            SSL_CONF_FLAG_SERVER() |
+                            SSL_CONF_FLAG_CERTIFICATE() |
+                            SSL_CONF_FLAG_SHOW_ERRORS());
+                } else {
+                    log.error(sm.getString("opensslconf.unsupported"));
                 }
-                SSL_CONF_CTX_set_flags(confCtx, SSL_CONF_FLAG_FILE() |
-                        SSL_CONF_FLAG_SERVER() |
-                        SSL_CONF_FLAG_CERTIFICATE() |
-                        SSL_CONF_FLAG_SHOW_ERRORS());
             }
 
             // SSL protocol
@@ -452,14 +457,16 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
      * @param tms Must contain a TrustManager of the type
      *            {@code X509TrustManager}
      * @param sr Is not used for this implementation.
+     * @throws KeyManagementException if an error occurs
      */
     @Override
-    public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) {
+    public void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException {
         if (initialized) {
             log.warn(sm.getString("openssl.doubleInit"));
             return;
         }
         boolean success = true;
+        Exception cause = null;
         try (var localArena = Arena.ofConfined()) {
             if (sslHostConfig.getInsecureRenegotiation()) {
                 openssl_h_Compatibility.SSL_CTX_set_options(state.sslCtx, SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION());
@@ -658,11 +665,12 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
             sslHostConfig.setOpenSslContext(Long.valueOf(state.sslCtx.address()));
             initialized = true;
         } catch (Exception e) {
-            log.warn(sm.getString("openssl.errorSSLCtxInit"), e);
+            cause = e;
             success = false;
         }
         if (!success) {
             destroy();
+            throw new KeyManagementException(sm.getString("openssl.errorSSLCtxInit"), cause);
         }
     }
 
@@ -1396,7 +1404,7 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
                 this.confCtx = confCtx.reinterpret(ValueLayout.ADDRESS.byteSize(), stateArena,
                         (MemorySegment t) -> SSL_CONF_CTX_free(t));
             } else {
-                this.confCtx = null;
+                this.confCtx = MemorySegment.NULL;
             }
         }
 
